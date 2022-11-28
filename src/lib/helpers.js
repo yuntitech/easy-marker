@@ -181,7 +181,7 @@ export function getTouchPosition(e, offset = { x: 0, y: 0 }) {
   if (clientX > window.innerWidth) {
     clientX -= window.innerWidth
   }
-  const realHeight = window.innerWidth - getSafeAreaTopAndBottomHeight()
+  const realHeight = window.innerHeight - getSafeAreaTopAndBottomHeight()
   if (clientY > realHeight) {
     clientY -= realHeight
   }

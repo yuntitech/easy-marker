@@ -1773,7 +1773,7 @@ function getTouchPosition(e) {
   if (clientX > window.innerWidth) {
     clientX -= window.innerWidth;
   }
-  var realHeight = window.innerWidth - getSafeAreaTopAndBottomHeight();
+  var realHeight = window.innerHeight - getSafeAreaTopAndBottomHeight();
   if (clientY > realHeight) {
     clientY -= realHeight;
   }
