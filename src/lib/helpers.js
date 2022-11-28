@@ -189,11 +189,11 @@ export function getFixedTouchPosition(e, offset = { x: 0, y: 0 }) {
   let clientX = touch.clientX
   let clientY = touch.clientY
   if (clientX > window.innerWidth) {
-    clientX -= window.innerWidth
+    clientX = clientX % window.innerWidth
   }
   const realHeight = window.innerHeight - getSafeAreaTopAndBottomHeight()
   if (clientY > realHeight) {
-    clientY -= realHeight
+    clientY = clientY % realHeight
   }
   return {
     x: clientX + offset.x,

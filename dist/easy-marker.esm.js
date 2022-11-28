@@ -1776,76 +1776,6 @@ function getTouchPosition(e) {
   };
 }
 
-function getFixedTouchPosition(e) {
-  var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : { x: 0, y: 0 };
-
-  var touch = getTouch(e);
-  var clientX = touch.clientX;
-  var clientY = touch.clientY;
-  if (clientX > window.innerWidth) {
-    clientX -= window.innerWidth;
-  }
-  var realHeight = window.innerHeight - getSafeAreaTopAndBottomHeight();
-  if (clientY > realHeight) {
-    clientY -= realHeight;
-  }
-  return {
-    x: clientX + offset.x,
-    y: clientY + offset.y
-  };
-}
-
-/**
- * @description 获取安全区域顶部距离
- */
-function getSafeAreaTopHeight() {
-  var proceed = false;
-  var div = document.createElement('div');
-  if (CSS.supports('padding-top: env(safe-area-inset-top)')) {
-    div.style.paddingTop = 'env(safe-area-inset-top)';
-    proceed = true;
-  } else if (CSS.supports('padding-top: constant(safe-area-inset-top)')) {
-    div.style.paddingTop = 'constant(safe-area-inset-top)';
-    proceed = true;
-  }
-  if (proceed) {
-    document.body.appendChild(div);
-    var calculatedPadding = parseInt(window.getComputedStyle(div).paddingTop, 10);
-    document.body.removeChild(div);
-    return calculatedPadding;
-  }
-  return 0;
-}
-
-/**
- * @description 获取安全区域底部距离
- */
-function getSafeAreaBottomHeight() {
-  var proceed = false;
-  var div = document.createElement('div');
-  if (CSS.supports('padding-bottom: env(safe-area-inset-bottom)')) {
-    div.style.paddingBottom = 'env(safe-area-inset-bottom)';
-    proceed = true;
-  } else if (CSS.supports('padding-bottom: constant(safe-area-inset-bottom)')) {
-    div.style.paddingBottom = 'constant(safe-area-inset-bottom)';
-    proceed = true;
-  }
-  if (proceed) {
-    document.body.appendChild(div);
-    var calculatedPadding = parseInt(window.getComputedStyle(div).paddingBottom, 10);
-    document.body.removeChild(div);
-    return calculatedPadding;
-  }
-  return 0;
-}
-
-/**
- * @description 获取安全区域顶部和底部的距离
- */
-function getSafeAreaTopAndBottomHeight() {
-  return getSafeAreaTopHeight() + getSafeAreaBottomHeight();
-}
-
 /**
  * Returns the distance between two points
  *
@@ -3068,7 +2998,8 @@ var Menu = function (_BaseElement) {
         icon: {
           display: 'block'
         }
-      }
+      },
+      customMenuNode: options.customMenuNode
     };
 
     if (options.style) {
@@ -3123,11 +3054,17 @@ var Menu = function (_BaseElement) {
 
       wrapper.appendChild(menu);
       wrapper.appendChild(bottomTriangle);
-      this.option.items.forEach(function (item) {
-        var menuItem = _this2.createMenuItemElement(item);
-        _this2.itemMap.set(menuItem, item);
-        menu.appendChild(menuItem);
-      });
+
+      if (this.option.customMenuNode) {
+        menu.appendChild(this.option.customMenuNode);
+      } else {
+        this.option.items.forEach(function (item) {
+          var menuItem = _this2.createMenuItemElement(item);
+          _this2.itemMap.set(menuItem, item);
+          menu.appendChild(menuItem);
+        });
+      }
+
       this.menuElement = menu;
       this.element = wrapper;
       var style = document.createElement('style');
@@ -3203,7 +3140,9 @@ var Menu = function (_BaseElement) {
             _rects = _TextNode$getSelectNo.rects;
 
         _rects.filter(function (item) {
-          return item.left <= _this3.windowWidth && item.left >= 0;
+          // 确保同一个 iframe 在不同的 page 间可以正常唤起菜单
+          var left = item.left % _this3.windowWidth;
+          return left <= _this3.windowWidth && left >= 0;
         }).forEach(function (rect, index) {
           if (index === 0) {
             mergeRects.left = rect.left - _this3.screenRelativeOffset.x;
@@ -3267,6 +3206,7 @@ var Menu = function (_BaseElement) {
       } else {
         // relativeTop = this.option.topOffset + menuHeight - containerTop
         this.style.position = 'fixed';
+        // this.style.position = 'absolute'
         relativeTop = this.option.topOffset + this.height;
       }
 
@@ -3275,11 +3215,25 @@ var Menu = function (_BaseElement) {
       this.style.top = relativeTop + 'px';
       if (this.positionRange.left + containerLeft + this.width / 2 > this.windowWidth) {
         var right = void 0;
+        // 判断是否是第一页
+        var page = Math.floor(this.easyMarker.cursor.start.position.x / window.innerWidth);
         if (this.style.position === 'fixed' && !this.option.isMultiColumnLayout) {
           right = containerRight - this.positionRange.left - this.width / 2;
           right = containerLeft < 0 ? -this.width / 2 : right;
+          if (page > 0) {
+            right = this.positionRange.left + this.width / 2 - this.windowWidth + this.width / 2;
+            right = -right;
+          }
         } else {
           right = containerRight - this.positionRange.left - containerLeft - this.width / 2;
+
+          if (page > 0) {
+            // 当不在第一页时，需要特殊处理 right 的计算
+            // 正向计算
+            // 当前选择区域的 left，其实为中间值，加上菜单宽度的一半为 right 值，但是因为不是第一页，所以要接着减去第一页的宽度，然后由于 menu 有往左 50% 的位移，所以需要加上宽度的一半
+            right = this.positionRange.left + this.width / 2 - this.windowWidth + this.width / 2;
+            right = -right;
+          }
         }
         this.style.right = right + 'px';
         this.style.left = '';
@@ -5024,6 +4978,7 @@ var EasyMarker = function () {
    * @param {number} options.regions[].width region width
    * @param {number} options.regions[].height region height
    * @param {boolean} options.disableSelect disabled select
+   * @param {Object} options.customMenuNode 自定义菜单节点
    */
   function EasyMarker(options) {
     _classCallCheck(this, EasyMarker);
@@ -5139,7 +5094,8 @@ var EasyMarker = function () {
         topOffset: this.options.menuTopOffset,
         style: this.options.menuStyle,
         isMultiColumnLayout: this.options.isMultiColumnLayout,
-        mode: this.mode
+        mode: this.mode,
+        customMenuNode: this.options.customMenuNode
       });
       this.menu.easyMarker = this;
       this.highlight.easyMarker = this;
@@ -5515,11 +5471,21 @@ var EasyMarker = function () {
           clearInterval(this.scrollInterval);
         }
 
-        var _getFixedTouchPositio = getFixedTouchPosition(e, offset),
-            x = _getFixedTouchPositio.x,
-            y = _getFixedTouchPositio.y;
+        var _getTouchPosition = getTouchPosition(e, offset),
+            x = _getTouchPosition.x,
+            y = _getTouchPosition.y;
 
-        var target = document.elementFromPoint(x, y);
+        // 根据起始光标的 x 与屏幕宽度的比值获得页码
+
+
+        var page = Math.floor(this.cursor.start.position.x / window.innerWidth);
+
+        // 判断如果当前移动的位置左边 - 页码 * 屏幕宽度 大于 屏幕宽度减 16，则忽略
+        if (x - window.innerWidth * page > window.innerWidth - 16) return;
+
+        var iframe = document.querySelectorAll('iframe')[0];
+        var target = iframe.contentDocument.elementFromPoint(x, y);
+
         // https://stackoverflow.com/a/8811344
         if (target instanceof HTMLIFrameElement) {
           target = target.contentWindow.document.elementFromPoint(x, y);

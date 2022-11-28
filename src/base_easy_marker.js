@@ -236,6 +236,7 @@ class EasyMarker {
    * @param {number} options.regions[].width region width
    * @param {number} options.regions[].height region height
    * @param {boolean} options.disableSelect disabled select
+   * @param {Object} options.customMenuNode 自定义菜单节点
    */
   constructor(options) {
     this.options = Object.assign({}, defaultOptions, options)
@@ -384,6 +385,7 @@ class EasyMarker {
       style: this.options.menuStyle,
       isMultiColumnLayout: this.options.isMultiColumnLayout,
       mode: this.mode,
+      customMenuNode: this.options.customMenuNode,
     })
     this.menu.easyMarker = this
     this.highlight.easyMarker = this
@@ -706,8 +708,17 @@ class EasyMarker {
       } else {
         clearInterval(this.scrollInterval)
       }
-      const { x, y } = getFixedTouchPosition(e, offset)
-      let target = document.elementFromPoint(x, y)
+      const { x, y } = getTouchPosition(e, offset)
+
+      // 根据起始光标的 x 与屏幕宽度的比值获得页码
+      const page = Math.floor(this.cursor.start.position.x / window.innerWidth)
+
+      // 判断如果当前移动的位置左边 - 页码 * 屏幕宽度 大于 屏幕宽度减 16，则忽略
+      if (x - window.innerWidth * page > window.innerWidth - 16) return
+
+      const iframe = document.querySelectorAll('iframe')[0]
+      let target = iframe.contentDocument.elementFromPoint(x, y)
+
       // https://stackoverflow.com/a/8811344
       if (target instanceof HTMLIFrameElement) {
         target = target.contentWindow.document.elementFromPoint(x, y)

@@ -51,6 +51,7 @@ export default class Menu extends BaseElement {
           display: 'block',
         },
       },
+      customMenuNode: options.customMenuNode,
     }
 
     if (options.style) {
@@ -115,11 +116,17 @@ export default class Menu extends BaseElement {
 
     wrapper.appendChild(menu)
     wrapper.appendChild(bottomTriangle)
-    this.option.items.forEach((item) => {
-      const menuItem = this.createMenuItemElement(item)
-      this.itemMap.set(menuItem, item)
-      menu.appendChild(menuItem)
-    })
+
+    if (this.option.customMenuNode) {
+      menu.appendChild(this.option.customMenuNode)
+    } else {
+      this.option.items.forEach(item => {
+        const menuItem = this.createMenuItemElement(item)
+        this.itemMap.set(menuItem, item)
+        menu.appendChild(menuItem)
+      })
+    }
+
     this.menuElement = menu
     this.element = wrapper
     const style = document.createElement('style')
@@ -133,9 +140,7 @@ export default class Menu extends BaseElement {
     head.appendChild(style)
   }
 
-  createMenuItemElement({
-    text, iconName, style: itemStyle, iconStyle, type,
-  }) {
+  createMenuItemElement({ text, iconName, style: itemStyle, iconStyle, type }) {
     // eslint-disable-line class-methods-use-this
     const menuItem = document.createElement('span')
     menuItem.classList.add('em-menu-item')
@@ -186,7 +191,11 @@ export default class Menu extends BaseElement {
     } else {
       const { rects } = TextNode.getSelectNodeRectAndText(start.node, end.node, start.offset, end.offset)
       rects
-        .filter(item => item.left <= this.windowWidth && item.left >= 0)
+        .filter(item => {
+          // 确保同一个 iframe 在不同的 page 间可以正常唤起菜单
+          const left = item.left % this.windowWidth
+          return left <= this.windowWidth && left >= 0
+        })
         .forEach((rect, index) => {
           if (index === 0) {
             mergeRects.left = rect.left - this.screenRelativeOffset.x
@@ -246,6 +255,7 @@ export default class Menu extends BaseElement {
     } else {
       // relativeTop = this.option.topOffset + menuHeight - containerTop
       this.style.position = 'fixed'
+      // this.style.position = 'absolute'
       relativeTop = this.option.topOffset + this.height
     }
 
@@ -254,11 +264,25 @@ export default class Menu extends BaseElement {
     this.style.top = `${relativeTop}px`
     if (this.positionRange.left + containerLeft + this.width / 2 > this.windowWidth) {
       let right
+      // 判断是否是第一页
+      const page = Math.floor(this.easyMarker.cursor.start.position.x / window.innerWidth)
       if (this.style.position === 'fixed' && !this.option.isMultiColumnLayout) {
         right = containerRight - this.positionRange.left - this.width / 2
         right = containerLeft < 0 ? -this.width / 2 : right
+        if (page > 0) {
+          right = this.positionRange.left + this.width / 2 - this.windowWidth + this.width / 2
+          right = -right
+        }
       } else {
         right = containerRight - this.positionRange.left - containerLeft - this.width / 2
+
+        if (page > 0) {
+          // 当不在第一页时，需要特殊处理 right 的计算
+          // 正向计算
+          // 当前选择区域的 left，其实为中间值，加上菜单宽度的一半为 right 值，但是因为不是第一页，所以要接着减去第一页的宽度，然后由于 menu 有往左 50% 的位移，所以需要加上宽度的一半
+          right = this.positionRange.left + this.width / 2 - this.windowWidth + this.width / 2
+          right = -right
+        }
       }
       this.style.right = `${right}px`
       this.style.left = ''
@@ -288,7 +312,7 @@ export default class Menu extends BaseElement {
   }
   copyListener(options, e) {
     let copyItem
-    this.itemMap.forEach((item) => {
+    this.itemMap.forEach(item => {
       if (item.id === 'copy' || item.text === '复制') {
         copyItem = item
       }
@@ -326,9 +350,7 @@ export default class Menu extends BaseElement {
   getSelection(options) {
     let selection
     if (this.mode === EasyMarkerMode.NODE) {
-      const {
-        start, end, content, markdown,
-      } = options
+      const { start, end, content, markdown } = options
       selection = {
         anchorNode: start.node,
         anchorOffset: start.offset,
@@ -342,9 +364,7 @@ export default class Menu extends BaseElement {
         },
       }
     } else {
-      const {
-        start, end, content, markdown,
-      } = options
+      const { start, end, content, markdown } = options
       selection = {
         start,
         end,
