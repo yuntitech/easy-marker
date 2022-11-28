@@ -706,7 +706,7 @@ class EasyMarker {
       } else {
         clearInterval(this.scrollInterval)
       }
-      const { x, y } = getTouchPosition(e, offset)
+      const { x, y } = getFixedTouchPosition(e, offset)
       let target = document.elementFromPoint(x, y)
       // https://stackoverflow.com/a/8811344
       if (target instanceof HTMLIFrameElement) {

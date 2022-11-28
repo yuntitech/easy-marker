@@ -1770,68 +1770,10 @@ function getTouchPosition(e) {
   var touch = getTouch(e);
   var clientX = touch.clientX;
   var clientY = touch.clientY;
-  if (clientX > window.innerWidth) {
-    clientX -= window.innerWidth;
-  }
-  var realHeight = window.innerHeight - getSafeAreaTopAndBottomHeight();
-  if (clientY > realHeight) {
-    clientY -= realHeight;
-  }
   return {
     x: clientX + offset.x,
     y: clientY + offset.y
   };
-}
-
-/**
- * @description 获取安全区域顶部距离
- */
-function getSafeAreaTopHeight() {
-  var proceed = false;
-  var div = document.createElement('div');
-  if (CSS.supports('padding-top: env(safe-area-inset-top)')) {
-    div.style.paddingTop = 'env(safe-area-inset-top)';
-    proceed = true;
-  } else if (CSS.supports('padding-top: constant(safe-area-inset-top)')) {
-    div.style.paddingTop = 'constant(safe-area-inset-top)';
-    proceed = true;
-  }
-  if (proceed) {
-    document.body.appendChild(div);
-    var calculatedPadding = parseInt(window.getComputedStyle(div).paddingTop, 10);
-    document.body.removeChild(div);
-    return calculatedPadding;
-  }
-  return 0;
-}
-
-/**
- * @description 获取安全区域底部距离
- */
-function getSafeAreaBottomHeight() {
-  var proceed = false;
-  var div = document.createElement('div');
-  if (CSS.supports('padding-bottom: env(safe-area-inset-bottom)')) {
-    div.style.paddingBottom = 'env(safe-area-inset-bottom)';
-    proceed = true;
-  } else if (CSS.supports('padding-bottom: constant(safe-area-inset-bottom)')) {
-    div.style.paddingBottom = 'constant(safe-area-inset-bottom)';
-    proceed = true;
-  }
-  if (proceed) {
-    document.body.appendChild(div);
-    var calculatedPadding = parseInt(window.getComputedStyle(div).paddingBottom, 10);
-    document.body.removeChild(div);
-    return calculatedPadding;
-  }
-  return 0;
-}
-
-/**
- * @description 获取安全区域顶部和底部的距离
- */
-function getSafeAreaTopAndBottomHeight() {
-  return getSafeAreaTopHeight() + getSafeAreaBottomHeight();
 }
 
 /**
@@ -5503,9 +5445,9 @@ var EasyMarker = function () {
           clearInterval(this.scrollInterval);
         }
 
-        var _getTouchPosition = getTouchPosition(e, offset),
-            x = _getTouchPosition.x,
-            y = _getTouchPosition.y;
+        var _getFixedTouchPositio = getFixedTouchPosition(e, offset),
+            x = _getFixedTouchPositio.x,
+            y = _getFixedTouchPositio.y;
 
         var target = document.elementFromPoint(x, y);
         // https://stackoverflow.com/a/8811344

@@ -178,6 +178,16 @@ export function getTouchPosition(e, offset = { x: 0, y: 0 }) {
   const touch = getTouch(e)
   let clientX = touch.clientX
   let clientY = touch.clientY
+  return {
+    x: clientX + offset.x,
+    y: clientY + offset.y,
+  }
+}
+
+export function getFixedTouchPosition(e, offset = { x: 0, y: 0 }) {
+  const touch = getTouch(e)
+  let clientX = touch.clientX
+  let clientY = touch.clientY
   if (clientX > window.innerWidth) {
     clientX -= window.innerWidth
   }
