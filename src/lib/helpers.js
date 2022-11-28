@@ -36,14 +36,16 @@ export function getClickWordsPosition(pElement, x, y, separators = ['']) {
 
             for (let k = 0; k < textRects.length; k++) {
               const textRect = textRects[k]
-              rects.push(Object.assign({}, textRect, {
-                top: textRect.top - margin,
-                height: lineHeight,
-                bottom: textRect.bottom + margin,
-                left: textRect.left,
-                right: textRect.right,
-                width: textRect.width,
-              }))
+              rects.push(
+                Object.assign({}, textRect, {
+                  top: textRect.top - margin,
+                  height: lineHeight,
+                  bottom: textRect.bottom + margin,
+                  left: textRect.left,
+                  right: textRect.right,
+                  width: textRect.width,
+                })
+              )
             }
             return {
               node,
@@ -174,10 +176,68 @@ export function getClickPosition(pElement, x, y, isStart) {
  */
 export function getTouchPosition(e, offset = { x: 0, y: 0 }) {
   const touch = getTouch(e)
+  if (touch.clientX > window.innerWidth) {
+    touch.clientX -= window.innerWidth
+  }
+  const realHeight = window.innerWidth - getSafeAreaTopAndBottomHeight()
+  if (touch.clientY > realHeight) {
+    touch.clientY -= realHeight
+  }
   return {
     x: touch.clientX + offset.x,
     y: touch.clientY + offset.y,
   }
+}
+
+/**
+ * @description 获取安全区域顶部距离
+ */
+export function getSafeAreaTopHeight() {
+  let proceed = false
+  const div = document.createElement('div')
+  if (CSS.supports('padding-top: env(safe-area-inset-top)')) {
+    div.style.paddingTop = 'env(safe-area-inset-top)'
+    proceed = true
+  } else if (CSS.supports('padding-top: constant(safe-area-inset-top)')) {
+    div.style.paddingTop = 'constant(safe-area-inset-top)'
+    proceed = true
+  }
+  if (proceed) {
+    document.body.appendChild(div)
+    const calculatedPadding = parseInt(window.getComputedStyle(div).paddingTop, 10)
+    document.body.removeChild(div)
+    return calculatedPadding
+  }
+  return 0
+}
+
+/**
+ * @description 获取安全区域底部距离
+ */
+export function getSafeAreaBottomHeight() {
+  let proceed = false
+  const div = document.createElement('div')
+  if (CSS.supports('padding-bottom: env(safe-area-inset-bottom)')) {
+    div.style.paddingBottom = 'env(safe-area-inset-bottom)'
+    proceed = true
+  } else if (CSS.supports('padding-bottom: constant(safe-area-inset-bottom)')) {
+    div.style.paddingBottom = 'constant(safe-area-inset-bottom)'
+    proceed = true
+  }
+  if (proceed) {
+    document.body.appendChild(div)
+    const calculatedPadding = parseInt(window.getComputedStyle(div).paddingBottom, 10)
+    document.body.removeChild(div)
+    return calculatedPadding
+  }
+  return 0
+}
+
+/**
+ * @description 获取安全区域顶部和底部的距离
+ */
+export function getSafeAreaTopAndBottomHeight() {
+  return getSafeAreaTopHeight() + getSafeAreaBottomHeight()
 }
 
 /**
@@ -382,7 +442,9 @@ export function getDeviceType() {
   if (typeof navigator !== 'undefined' && navigator.userAgent) {
     const ua = navigator.userAgent
     if (ua.indexOf('Tablet') > -1 || ua.indexOf('Pad') > -1 || ua.indexOf('Nexus 7') > -1) return DeviceType.MOBILE
-    if (ua.indexOf('Mobi') > -1 || ua.indexOf('Android') > -1 || ua.indexOf('iPh') > -1 || ua.indexOf('FLOW') > -1) { return DeviceType.MOBILE }
+    if (ua.indexOf('Mobi') > -1 || ua.indexOf('Android') > -1 || ua.indexOf('iPh') > -1 || ua.indexOf('FLOW') > -1) {
+      return DeviceType.MOBILE
+    }
     return DeviceType.PC
   }
   return DeviceType.MOBILE
@@ -456,7 +518,7 @@ export function rectToPointArray(rect, offset, margin) {
   points.push([rect.right + margin, rect.bottom + margin])
   points.push([rect.left - margin, rect.bottom + margin])
 
-  points.forEach((point) => {
+  points.forEach(point => {
     point[0] -= offset.x
     point[1] -= offset.y
   })
