@@ -176,16 +176,18 @@ export function getClickPosition(pElement, x, y, isStart) {
  */
 export function getTouchPosition(e, offset = { x: 0, y: 0 }) {
   const touch = getTouch(e)
-  if (touch.clientX > window.innerWidth) {
-    touch.clientX -= window.innerWidth
+  let clientX = touch.clientX
+  let clientY = touch.clientY
+  if (clientX > window.innerWidth) {
+    clientX -= window.innerWidth
   }
   const realHeight = window.innerWidth - getSafeAreaTopAndBottomHeight()
-  if (touch.clientY > realHeight) {
-    touch.clientY -= realHeight
+  if (clientY > realHeight) {
+    clientY -= realHeight
   }
   return {
-    x: touch.clientX + offset.x,
-    y: touch.clientY + offset.y,
+    x: clientX + offset.x,
+    y: clientY + offset.y,
   }
 }
 

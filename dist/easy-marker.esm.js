@@ -1768,16 +1768,18 @@ function getTouchPosition(e) {
   var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : { x: 0, y: 0 };
 
   var touch = getTouch(e);
-  if (touch.clientX > window.innerWidth) {
-    touch.clientX -= window.innerWidth;
+  var clientX = touch.clientX;
+  var clientY = touch.clientY;
+  if (clientX > window.innerWidth) {
+    clientX -= window.innerWidth;
   }
   var realHeight = window.innerWidth - getSafeAreaTopAndBottomHeight();
-  if (touch.clientY > realHeight) {
-    touch.clientY -= realHeight;
+  if (clientY > realHeight) {
+    clientY -= realHeight;
   }
   return {
-    x: touch.clientX + offset.x,
-    y: touch.clientY + offset.y
+    x: clientX + offset.x,
+    y: clientY + offset.y
   };
 }
 
