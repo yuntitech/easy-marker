@@ -6,7 +6,7 @@ import Highlight from './element/highlight'
 import Markdown from './lib/markdown'
 import TouchEvent, { EventType } from './lib/touch_event'
 
-import { getTouchPosition, anyToPx, getTouch, getDeviceType } from './lib/helpers'
+import { getTouchPosition, getFixedTouchPosition, anyToPx, getTouch, getDeviceType } from './lib/helpers'
 import { SelectStatus, DeviceType, MenuType } from './lib/types'
 
 const defaultOptions = {
