@@ -237,6 +237,8 @@ class EasyMarker {
    * @param {number} options.regions[].height region height
    * @param {boolean} options.disableSelect disabled select
    * @param {Object} options.customMenuNode 自定义菜单节点
+   * @param {Object} options.customMenuNodeItems 自定义菜单节点数组
+   * @param {Object} options.onCustomMenuOutsideTap 点击了自定义菜单之外的区域
    */
   constructor(options) {
     this.options = Object.assign({}, defaultOptions, options)
@@ -386,6 +388,8 @@ class EasyMarker {
       isMultiColumnLayout: this.options.isMultiColumnLayout,
       mode: this.mode,
       customMenuNode: this.options.customMenuNode,
+      customMenuNodeItems: this.options.customMenuNodeItems,
+      onCustomMenuOutsideTap: this.options.onCustomMenuOutsideTap,
     })
     this.menu.easyMarker = this
     this.highlight.easyMarker = this

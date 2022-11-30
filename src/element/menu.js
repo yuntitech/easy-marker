@@ -52,6 +52,8 @@ export default class Menu extends BaseElement {
         },
       },
       customMenuNode: options.customMenuNode,
+      customMenuNodeItems: options.customMenuNodeItems,
+      onCustomMenuOutsideTap: options.onCustomMenuOutsideTap,
     }
 
     if (options.style) {
@@ -119,6 +121,10 @@ export default class Menu extends BaseElement {
 
     if (this.option.customMenuNode) {
       menu.appendChild(this.option.customMenuNode)
+
+      this.option.customMenuNodeItems.forEach(item => {
+        this.itemMap.set(item, item)
+      })
     } else {
       this.option.items.forEach(item => {
         const menuItem = this.createMenuItemElement(item)
@@ -334,7 +340,12 @@ export default class Menu extends BaseElement {
 
   handleTap(e, options) {
     const tapTarget = this.getTapTarget(e.target)
-    if (!this.itemMap.has(tapTarget)) return false
+    if (!this.itemMap.has(tapTarget)) {
+      if (this.option.onCustomMenuOutsideTap) {
+        this.option.onCustomMenuOutsideTap()
+      }
+      return false
+    }
 
     const selection = this.getSelection(options)
 

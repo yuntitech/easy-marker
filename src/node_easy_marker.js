@@ -242,7 +242,7 @@ class NodeEasyMarker extends BaseEasyMarker {
    */
   handleTap(e) {
     if (this.selectStatus === SelectStatus.FINISH) {
-      this.menu.handleTap(e, {
+      const menuTapResult = this.menu.handleTap(e, {
         start: this.textNode.start,
         end: this.textNode.end,
         content: this.getSelectText(),
@@ -252,7 +252,12 @@ class NodeEasyMarker extends BaseEasyMarker {
       const startCursorRegion = this.cursor.start.inRegion(position)
       const endCursorRegion = this.cursor.end.inRegion(position)
       if (startCursorRegion.inRegion || endCursorRegion.inRegion) return
-      this.reset()
+      // 如果是自定义 UI，由业务层来决定是否需要 reset
+      if (!this.options.customMenuNode) {
+        this.reset()
+      } else if (!menuTapResult) {
+        this.reset()
+      }
     } else if (this.selectStatus === SelectStatus.NONE) {
       const inHighlightLine = this.highlight.handleTap(e)
       if (

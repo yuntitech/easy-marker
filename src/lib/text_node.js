@@ -72,7 +72,7 @@ export default class TextNode {
     }
     let rects
     try {
-      ({ rects } = this.getSelectNodeRectAndText(
+      ;({ rects } = this.getSelectNodeRectAndText(
         startTextNode.node,
         endTextNode.node,
         startTextNode.offset,
@@ -84,19 +84,20 @@ export default class TextNode {
     }
 
     const lineMergedRects = []
-    rects.forEach((rect) => {
+    rects.forEach(rect => {
       if (lineMergedRects.length > 0) {
         const lastLineMergedRect = lineMergedRects[lineMergedRects.length - 1]
         const safetyBoundary = lastLineMergedRect.height / 2
-        if (Math.abs(lastLineMergedRect.top - rect.top) < safetyBoundary
-        && Math.abs(lastLineMergedRect.bottom - rect.bottom) < safetyBoundary) {
+        if (
+          Math.abs(lastLineMergedRect.top - rect.top) < safetyBoundary &&
+          Math.abs(lastLineMergedRect.bottom - rect.bottom) < safetyBoundary
+        ) {
           lastLineMergedRect.width += rect.width
-          lastLineMergedRect.height = lastLineMergedRect.height - rect.height > 0
-            ? lastLineMergedRect.height : rect.height
-          lastLineMergedRect.top = lastLineMergedRect.top - rect.top < 0
-            ? lastLineMergedRect.top : rect.top
-          lastLineMergedRect.bottom = lastLineMergedRect.bottom - rect.bottom > 0
-            ? lastLineMergedRect.bottom : rect.bottom
+          lastLineMergedRect.height =
+            lastLineMergedRect.height - rect.height > 0 ? lastLineMergedRect.height : rect.height
+          lastLineMergedRect.top = lastLineMergedRect.top - rect.top < 0 ? lastLineMergedRect.top : rect.top
+          lastLineMergedRect.bottom =
+            lastLineMergedRect.bottom - rect.bottom > 0 ? lastLineMergedRect.bottom : rect.bottom
         } else {
           lineMergedRects.push(copyRect(rect))
         }
@@ -137,7 +138,7 @@ export default class TextNode {
 
     if (lineMergedRects.length > 0) {
       let maxRight = 0
-      lineMergedRects.forEach((lineRect) => {
+      lineMergedRects.forEach(lineRect => {
         if (bodyLine.x && bodyLine.width) {
           if (lineRect.left < bodyLine.x) {
             bodyLine.x = lineRect.left
